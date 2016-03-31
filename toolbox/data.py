@@ -14,7 +14,12 @@ class database:
         self.connection.commit()
 
     def insert(self, table, dict):
-        self.cursor.execute('INSERT INTO %s (%s) VALUES (%s) RETURNING *' % (table, ','.join(dict.keys()), ','.join(['%s'] * len(dict))), dict.values())
+        if type(dict) is set:
+            dict = list(dict)
+        if type(dict) is list:
+            self.cursor.execute('INSERT INTO %s VALUES (%s) RETURNING *' % (table, ','.join(['%s'] * len(dict))), dict)
+        else:
+            self.cursor.execute('INSERT INTO %s (%s) VALUES (%s) RETURNING *' % (table, ','.join(dict.keys()), ','.join(['%s'] * len(dict))), dict.values())
         return self.cursor.fetchone()
 
     def update(self, table, value_dict, pk_dict):
