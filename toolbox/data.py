@@ -6,7 +6,11 @@ class database:
     A little database wrapper
     """
     def __init__(self, host, dbname, user=None, password=None):
-        args = {'dbname': dbname, 'host': host}
+        args = { 'dbname': dbname, 'host': host }
+        if user:
+            args['user'] = user
+        if password:
+            args['password'] = password
         self.connection = psycopg2.connect(**args)
         self.cursor = self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
