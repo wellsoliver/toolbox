@@ -5,25 +5,27 @@ class database:
     """
     A little database wrapper
     """
-    def __init__(self, host, dbname, user=None, password=None):
-        args = { 'dbname': dbname, 'host': host }
-        if user:
-            args['user'] = user
-        if password:
-            args['password'] = password
-        self.connection = psycopg2.connect(**args)
+    def __init__(self, dsn=None, **kwargs):
+        if dsn:
+            self.connection = psycopg2.connect(dsn)
+        else:
+            self.connection = psycopg2.connect(**kwargs)
         self.cursor = self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     def commit(self):
         self.connection.commit()
 
-    def insert(self, table, dict):
-        if type(dict) is set:
-            dict = list(dict)
-        if type(dict) is list:
-            self.cursor.execute('INSERT INTO %s VALUES (%s) RETURNING *' % (table, ','.join(['%s'] * len(dict))), dict)
+    def insert(self, table, value_dict):
+        if type(value_dict) is set:
+            value_dict = list(value_dict)
+        markers = ['%s'] * len(value_dict)
+        if type(value_dict) is list:
+            q = 'INSERT INTO %s VALUES (%s) RETURNING *' % (table, ','.join(markers))
+            self.cursor.execute(q, value_dict)
         else:
-            self.cursor.execute('INSERT INTO %s (%s) VALUES (%s) RETURNING *' % (table, ','.join(dict.keys()), ','.join(['%s'] * len(dict))), dict.values())
+            keys = value_dict.keys()
+            q = 'INSERT INTO %s (%s) VALUES (%s) RETURNING *' % (table, ','.join(keys), ','.join(markers))
+            self.cursor.execute(q, value_dict.values())
         return self.cursor.fetchone()
 
     def update(self, table, value_dict, pk_dict):
@@ -84,10 +86,10 @@ class database:
         self.cursor.execute(query, params)
         return self.cursor.rowcount
 
-    def fetch_one(self, query, params=None):
+    def fetchone(self, query, params=None):
         self.cursor.execute(query, params)
         return self.cursor.fetchone()
 
-    def fetch_all(self, query, params=None):
+    def fetchall(self, query, params=None):
         self.cursor.execute(query, params)
         return self.cursor.fetchall()
