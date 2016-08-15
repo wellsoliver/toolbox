@@ -1,5 +1,11 @@
+"""
+    toolbox.data
+    ~~~~~~~
+    Data-munging utilities
+"""
 import psycopg2
 import psycopg2.extras
+
 
 class database:
     """
@@ -93,3 +99,21 @@ class database:
     def fetchall(self, query, params=None):
         self.cursor.execute(query, params)
         return self.cursor.fetchall()
+
+
+def placeholders(params, holder='%s', as_string=True):
+    """Returns list of query placeholders or comma-delimited
+    string if as_string=True
+    """
+    l = [holder] * len(params)
+    if as_string:
+        return ','.join(l)
+    return l
+
+
+def rescale(value, old_min, old_max, new_min, new_max):
+    """Linear re-scaling of a value from an old range to a new"""
+    orange = (old_max -old_min)
+    nrange = (new_max - new_min)
+    return (((value - old_min) * nrange) / orange) + new_min
+
