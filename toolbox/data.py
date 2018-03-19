@@ -6,11 +6,11 @@
 import psycopg2
 import psycopg2.extras
 
+from StringIO import StringIO
+
 
 class database:
-    """
-    A little database wrapper
-    """
+    """A little database wrapper"""
     def __init__(self, dsn=None, **kwargs):
         if dsn:
             self.connection = psycopg2.connect(dsn)
@@ -23,6 +23,20 @@ class database:
     
     def close(self):
         self.connection.close()
+
+    def copy(self, table, data, sep='|'):
+        """Bulk copy of a list of dicts"""
+        if len(data) == 0:
+            return 0
+        keys = data[0].keys()
+        stringdata = []
+        for row in data:
+            rowstr = sep.join([unicode(row[key] or '\N') for key in keys])
+            stringdata.append(rowstr)
+        count = len(stringdata)
+        self.cursor.copy_from(StringIO('\n'.join(stringdata)),
+            table, sep=sep, columns=keys)
+        return count
 
     def insert(self, table, value_dict):
         if type(value_dict) is set:
