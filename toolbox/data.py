@@ -20,24 +20,31 @@ class database:
 
     def commit(self):
         self.connection.commit()
+    
+    def close(self):
+        self.connection.close()
 
     def insert(self, table, value_dict):
         if type(value_dict) is set:
             value_dict = list(value_dict)
         markers = ['%s'] * len(value_dict)
         if type(value_dict) is list:
-            q = 'INSERT INTO %s VALUES (%s) RETURNING *' % (table, ','.join(markers))
+            q = """INSERT INTO %s
+                VALUES (%s) RETURNING *""" % (table, ','.join(markers))
             self.cursor.execute(q, value_dict)
         else:
             keys = value_dict.keys()
-            q = 'INSERT INTO %s (%s) VALUES (%s) RETURNING *' % (table, ','.join(keys), ','.join(markers))
+            q = """INSERT INTO %s (%s)
+                VALUES (%s) RETURNING *""" % (table, ','.join(keys), ','.join(markers))
             self.cursor.execute(q, value_dict.values())
         return self.cursor.fetchone()
 
     def update(self, table, value_dict, pk_dict):
         sets = ['%s = %s' % (key, '%s') for key in value_dict.keys()]
         pksets = ['%s = %s' % (key, '%s') for key in pk_dict.keys()]
-        q = 'UPDATE %s SET %s WHERE %s RETURNING *' % (table, ','.join(sets), ' AND '.join(pksets))
+        q = """UPDATE %s
+            SET %s
+            WHERE %s RETURNING *""" % (table, ','.join(sets), ' AND '.join(pksets))
         params = value_dict.values() + pk_dict.values()
         self.cursor.execute(q, params)
         return self.cursor.fetchone()
@@ -64,12 +71,14 @@ class database:
                     clauses.append('%s = %s' % (key, '%s'))
                 params.append(value)
         if len(clauses) > 0:
-            query = 'SELECT * FROM %s WHERE %s' % (table, ' AND '.join(clauses))
+            query = """SELECT *
+                FROM %s WHERE %s""" % (table, ' AND '.join(clauses))
         else:
             query = 'SELECT * FROM %s' % table
         if order_by:
             if type(order_by) is list:
-                query = query + ' ORDER BY %s' % ','.join(['%s %s' % (x[0],x[1]) for x in order_by])
+                ordering = ['%s %s' % (x[0],x[1]) for x in order_by]
+                query = query + ' ORDER BY %s' % ','.join(ordering)
             elif type(order_by) is tuple:
                 query = query + ' ORDER BY %s' % ' '.join(order_by)
         self.cursor.execute(query, params)
