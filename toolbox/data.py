@@ -6,8 +6,7 @@
 import psycopg2
 import psycopg2.extras
 
-from StringIO import StringIO
-
+from io import StringIO
 
 class database:
     """A little database wrapper"""
@@ -31,7 +30,7 @@ class database:
         keys = data[0].keys()
         stringdata = []
         for row in data:
-            rowstr = sep.join([unicode(row[key] or '\N') for key in keys])
+            rowstr = sep.join([unicode(row[key] or '\n') for key in keys])
             stringdata.append(rowstr)
         count = len(stringdata)
         self.cursor.copy_from(StringIO('\n'.join(stringdata)),
@@ -74,7 +73,7 @@ class database:
         clauses = []
         params = []
         if value_dict:
-            for key, value in value_dict.iteritems():
+            for key, value in value_dict.items():
                 if type(value) is set:
                     value = list(value)
                 if type(value) is list:
@@ -105,7 +104,7 @@ class database:
         params = None
         if pk_dict:
             params = pk_dict.values()
-            for key, value in pk_dict.iteritems():
+            for key, value in pk_dict.items():
                 if type(value) is list:
                     clauses.append('%s = ANY(%s)' % (key, '%s'))
                 else:

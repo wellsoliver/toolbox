@@ -38,6 +38,6 @@ def fetch_json(url, timeout=120, verbose=False, method='get', **kwargs):
         raise Exception('Status code of %s received' % res.status_code)
     try:
         obj = json.loads(res.content)
-    except Exception, e:
+    except Exception as e:
         raise Exception('Could not parse JSON: %s' % res.content)
     return obj
