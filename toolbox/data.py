@@ -62,7 +62,7 @@ class database:
                 ",".join(keys),
                 ",".join(markers),
             )
-            self.cursor.execute(q, value_dict.values())
+            self.cursor.execute(q, list(value_dict.values()))
         return self.cursor.fetchone()
 
     def update(self, table, value_dict, pk_dict):
@@ -75,7 +75,7 @@ class database:
             ",".join(sets),
             " AND ".join(pksets),
         )
-        params = value_dict.values() + pk_dict.values()
+        params = list(value_dict.values()) + list(pk_dict.values())
         self.cursor.execute(q, params)
         return self.cursor.fetchone()
 
@@ -141,6 +141,32 @@ class database:
     def fetchall(self, query, params=None):
         self.cursor.execute(query, params)
         return self.cursor.fetchall()
+
+
+class manager:
+    def __init__(self, host="localhost", dbname=None):
+        self.host = host
+        self.dbname = dbname
+
+    def __enter__(self):
+        params = [f"host={self.host}"]
+        if self.dbname:
+            params.append(f"dbname={self.dbname}")
+        dsn = " ".join(params)
+        self.connection = database(dsn)
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.connection.close()
+
+    def insert(self, table, value_dict):
+        self.connection.insert(table, value_dict)
+
+    def upsert(self, table, value_dict, pk_dict):
+        self.connection.upsert(table, value_dict, pk_dict)
+
+    def commit(self):
+        self.connection.commit()
 
 
 def placeholders(params, holder="%s", as_string=True):
