@@ -16,7 +16,6 @@ def fetch_url(url, timeout=30, method="get", retry=0, max_retries=10, payload=No
     Returns requests.Response object, if max_retries is exceeded, will return
     a NoneType
     """
-    logger.debug(f"Fucking {url}")
     try:
         if method == "post":
             res = requests.post(url, timeout=timeout, data=payload)
