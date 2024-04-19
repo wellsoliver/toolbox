@@ -1,7 +1,5 @@
 """
-    toolbox.data
-    ~~~~~~~
-    Data-munging utilities
+Data-munging utilities, very postgres specific
 """
 
 import psycopg2
@@ -11,7 +9,9 @@ from io import StringIO
 
 
 class database:
-    """A little database wrapper"""
+    """
+    A postgres-specific database wrapper
+    """
 
     def __init__(self, dsn=None, **kwargs):
         if dsn:
@@ -144,6 +144,10 @@ class database:
 
 
 class manager:
+    """
+    A context manager for a database connection
+    """
+
     def __init__(self, host="localhost", dbname=None):
         self.host = host
         self.dbname = dbname
@@ -162,21 +166,16 @@ class manager:
     def insert(self, table, value_dict):
         self.connection.insert(table, value_dict)
 
+    def select(self, table, value_dict=None, order_by=None, fetch_one=False):
+        return self.connection.select(
+            table, value_dict=value_dict, order_by=order_by, fetch_one=fetch_one
+        )
+
     def upsert(self, table, value_dict, pk_dict):
         self.connection.upsert(table, value_dict, pk_dict)
 
     def commit(self):
         self.connection.commit()
-
-
-def placeholders(params, holder="%s", as_string=True):
-    """Returns list of query placeholders or comma-delimited
-    string if as_string=True
-    """
-    l = [holder] * len(params)
-    if as_string:
-        return ",".join(l)
-    return l
 
 
 def rescale(value, old_min, old_max, new_min, new_max):
